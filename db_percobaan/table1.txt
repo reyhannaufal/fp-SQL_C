@@ -1,0 +1,5 @@
+kolom1,nama,nomor
+string,string,int
+hehehe,fikri sunandar,0938
+huhuhu,sunan kali,423
+wkwkkw,susah,932
