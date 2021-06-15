@@ -3,3 +3,9 @@ string,string,int
 hehehe,fikri sunandar,0938
 huhuhu,sunan kali,423
 wkwkkw,susah,932
+value19,value04,4
+hohoho,value04,04
+hohoho,value04,04
+hohoho,value04,04
+hohoho,value04,04
+kitacoba,value04,04
