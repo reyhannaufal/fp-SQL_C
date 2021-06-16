@@ -20,20 +20,24 @@ char *PATH = "/home/mufis/PS/FP";
 char *namaDB = "db_percobaan";
 char TBLARR[100][100];
 
-// char *argument(int argi, char **arg){
-// 	char *output = malloc(200);
-// 	for (int i=1; i<argi; i++){
-// 		if(i==1){
-// 			strcpy(output, arg[i]);
-// 		}else{
-// 			if(i != argi){
-// 				strcat(output, " ");
-// 			}
-// 			strcat(output, arg[i]);
-// 		}
-// 	}
-// 	return output;
-// }
+char *fpath_tbl(char *nama_tbl);
+int ftxt_toArr(char *path);
+char *str_withoutq(char *inpt);
+
+char *tokens_toStr(char **arg, int src, int dest, char *delim){
+	char *output = malloc(200);
+	for (int i=src; i<dest; i++){
+		if(i==src){
+			strcpy(output, arg[i]);
+		}else{
+			if(i != dest){
+				strcat(output, delim);
+			}
+			strcat(output, arg[i]);
+		}
+	}
+	return output;
+}
 
 char** str_split(char* a_str, const char a_delim)
 {
@@ -142,33 +146,52 @@ int find_index(char *arg, char ichar){
 	return -1;
 }
 
-int ftxt_toArr(char *path){
-	char fname[20];
-	FILE *fptr = NULL; 
-	int i = 0;
-	int tot = 0;
+int fline_where(int argc, char **argv, int whereC){
+	if(whereC == -1){
+		return -1;
+	}else{
+		int tbl_int = whereC - 1;
+		int cek_b = ftxt_toArr(fpath_tbl(argv[tbl_int]));
+		if(cek_b == -1){
+			return -2; //table tidak ditemukan
+		}
+		char param_where[100]; //menyatukan tokens jadi string lagi dgn delim
+		strcpy(param_where, tokens_toStr(argv, whereC + 1, argc, " "));
 
-	fptr = fopen(path, "r");
-	if (fptr == NULL)
-    {
-        return -1;
-    }
+		char **token_where;
+		token_where = str_split(param_where, '=');
 
-	while(fgets(TBLARR[i], 100, fptr)) 
-	{
-		TBLARR[i][strlen(TBLARR[i]) - 1] = '\0';
-		i++;
+		int kol_n = -3; //mencari kolom pada 
+		for (int i=0; i<cek_b; i++){
+			char **tblline;
+			tblline = str_split(TBLARR[i], ',');
+			if(i==0){ //nyari kolom pada urutan ke berapa
+				for (int j=0; *(tblline + j); j++){
+					if(strcmp(*(tblline + j), *(token_where + 0)) == 0){
+						kol_n = j;
+						break;
+					}
+				}
+			}
+			else if(kol_n == -3) {
+				return -3; //tidak ditemukan nama kolom
+			}else{ // nyari line
+				if(strcmp(str_withoutq(*(token_where + 1)), *(tblline + kol_n)) == 0){
+					// printf("namap: %s, namadb: %s\n", str_withoutq(*(token_where + 1)), *(tblline + kol_n));
+					return i;
+					break;
+				}
+			}
+		}
+		return -4; //tidak ditemukan data
 	}
-
-	fclose(fptr);
-
-	return i;
+	return -1;
 }
 
-void addStringtoTxt(char *str, char *path){
+void addStringtoTxt(char *str, char *path, char *type, int tipe_call){
 	FILE *fptr = NULL;
 	
-	fptr = fopen(path, "a+");
+	fptr = fopen(path, type);
 	if (fptr == NULL)
     {	
 		printf("Data Gagal Dimasukan!\n");
@@ -177,19 +200,8 @@ void addStringtoTxt(char *str, char *path){
 
 	fputs(str, fptr);
 	fclose(fptr);
-	printf("Data Berhasil Dimasukan!\n");
-}
-
-char *fpath_tbl(char *nama_tbl){
-	char *tbl_str = malloc(50);
-	strcpy(tbl_str, PATH);
-	strcat(tbl_str, "/");
-	strcat(tbl_str, namaDB);
-	strcat(tbl_str, "/");
-	strcat(tbl_str, nama_tbl);
-	strcat(tbl_str, ".txt");
-
-	return tbl_str;
+	if(tipe_call == 1) //insert
+		printf("Data Berhasil Dimasukan!\n");
 }
 
 int cek_tipe(char *inpt){
@@ -201,18 +213,39 @@ int cek_tipe(char *inpt){
 	return 1;
 }
 
-char *str_withoutq(char *inpt){
-	char *out = malloc(100);
-	int c = 0;
-	for(int i=0; i<strlen(inpt); i++){
-		if((inpt[i]>='a' && inpt[i]<='z') || (inpt[i]>='A' && inpt[i]<='Z') || 
-			(inpt[i]>='0' && inpt[i]<='9') || (inpt[i]==' ' && i != 0)){
-			out[c] = inpt[i];
-			c++;
-		}
+void delete_tbl(int argc, char **argv, int line){
+	if(line == -2){
+		printf("Tabel Tidak Ditemukan!\n");
+		return;
 	}
-	out[c] = '\0';
-	return out;
+	else if(line == -3){
+		printf("Tidak Ditemukan Nama Kolom!\n");
+		return;
+	}else if(line == -4){
+		printf("Tidak Ditemukan Data!\n");
+		return;
+	}
+
+	int from_int = find_position(argc, argv, "FROM");
+	int tbl_int = from_int + 1;
+	int cek_b = ftxt_toArr(fpath_tbl(argv[tbl_int]));
+
+	if(line == -1){ //2 karena delete
+		addStringtoTxt(strcat(TBLARR[0], "\n"), fpath_tbl(argv[tbl_int]), "w", 2);
+		addStringtoTxt(strcat(TBLARR[1], "\n"), fpath_tbl(argv[tbl_int]), "a+", 2);
+		printf("Data Berhasil Dihapus!\n");
+	}else{
+		for(int i=0; i<cek_b; i++){
+			if(i != line){ //hapus line
+				if(i == 0){
+					addStringtoTxt(strcat(TBLARR[i], "\n"), fpath_tbl(argv[tbl_int]), "w", 2);
+				}else{
+					addStringtoTxt(strcat(TBLARR[i], "\n"), fpath_tbl(argv[tbl_int]), "a+", 2);
+				}
+			}
+		}
+		printf("Data Berhasil Dihapus!\n");
+	}	
 }
 
 void insert_tbl(int argc, char **argv, char *parameter){
@@ -282,7 +315,7 @@ void insert_tbl(int argc, char **argv, char *parameter){
 		}
 		strcat(saveStr, "\n");
 		// printf("save: %s\n", saveStr);
-		addStringtoTxt(saveStr, fpath_tbl(argv[tbl_int]));
+		addStringtoTxt(saveStr, fpath_tbl(argv[tbl_int]), "a+", 1);
 	}
 }
 
@@ -362,7 +395,7 @@ void select_tbl(int argc, char **argv){
 void run_command(char *comm){
 
 	char schar[3] = {',', '.', ';'};
-	int i;
+	int i, whereC = -1;
 
 	char *param = malloc(100);
 	strcpy(param, comm);
@@ -375,6 +408,9 @@ void run_command(char *comm){
             // free(*(tokens + i));
 			//buang spesialchar(schar)
 			strcpy(*(tokens+i), remove_schar(*(tokens + i), schar));
+			if(strcmp(*(tokens+i), "WHERE") == 0) {
+				whereC = i;
+			}
         }
         // free(tokens);
     }
@@ -383,6 +419,9 @@ void run_command(char *comm){
 
 	if (strcmp(*(tokens + 0), "INSERT") == 0){
 		insert_tbl(i, tokens, substr(param, find_index(param, '('), find_index(param, ')') + 1));
+	}
+	else if(strcmp(*(tokens + 0), "DELETE") == 0){
+		delete_tbl(i, tokens, fline_where(i, tokens, whereC));
 	}
 	else if(strcmp(*(tokens + 0), "SELECT") == 0){
 		select_tbl(i, tokens);
@@ -399,6 +438,58 @@ int main(int argc, char **argv){
 
 	// printf("haduh\n");
 	// char command[200] = "INSERT INTO table1 (‘kita coba’, ‘value04’, 04);";
-	char command[200] = "INSERT INTO table1 (‘kita coba’, 'wwaas', 87);";
+	// char command[200] = "INSERT INTO table1 (‘kita coba’, 'wwaas', 87);";
+
+	char command[200] = "DELETE FROM table1;";
+	// char command[200] = "DELETE FROM table1 WHERE nama=’fikri sunandar’;";
 	run_command(command);
+}
+
+char *fpath_tbl(char *nama_tbl){
+	char *tbl_str = malloc(50);
+	strcpy(tbl_str, PATH);
+	strcat(tbl_str, "/");
+	strcat(tbl_str, namaDB);
+	strcat(tbl_str, "/");
+	strcat(tbl_str, nama_tbl);
+	strcat(tbl_str, ".txt");
+
+	return tbl_str;
+}
+
+int ftxt_toArr(char *path){
+	char fname[20];
+	FILE *fptr = NULL; 
+	int i = 0;
+	int tot = 0;
+
+	fptr = fopen(path, "r");
+	if (fptr == NULL)
+    {
+        return -1;
+    }
+
+	while(fgets(TBLARR[i], 100, fptr)) 
+	{
+		TBLARR[i][strlen(TBLARR[i]) - 1] = '\0';
+		i++;
+	}
+
+	fclose(fptr);
+
+	return i;
+}
+
+char *str_withoutq(char *inpt){
+	char *out = malloc(100);
+	int c = 0;
+	for(int i=0; i<strlen(inpt); i++){
+		if((inpt[i]>='a' && inpt[i]<='z') || (inpt[i]>='A' && inpt[i]<='Z') || 
+			(inpt[i]>='0' && inpt[i]<='9') || (inpt[i]==' ' && i != 0)){
+			out[c] = inpt[i];
+			c++;
+		}
+	}
+	out[c] = '\0';
+	return out;
 }
