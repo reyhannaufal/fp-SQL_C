@@ -9,3 +9,4 @@ hohoho,value04,04
 hohoho,value04,04
 hohoho,value04,04
 kitacoba,value04,04
+kita coba,wwaas,87

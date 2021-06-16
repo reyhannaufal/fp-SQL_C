@@ -83,6 +83,20 @@ char** str_split(char* a_str, const char a_delim)
     return result;
 }
 
+char* substr(const char *src, int m, int n) {
+    // get the length of the destination string
+    int len = n - m;
+ 
+    // allocate (len + 1) chars for destination (+1 for extra null character)
+    char *dest = (char*)malloc(sizeof(char) * (len + 1));
+ 
+    // start with m'th char and copy `len` chars into the destination
+    strncpy(dest, (src + m), len);
+ 
+    // return the destination string
+    return dest;
+}
+
 int is_schar(char x, char *schar){
 	for (int i=0; i<strlen(schar); i++) {
 		if(x == schar[i]) {
@@ -192,7 +206,7 @@ char *str_withoutq(char *inpt){
 	int c = 0;
 	for(int i=0; i<strlen(inpt); i++){
 		if((inpt[i]>='a' && inpt[i]<='z') || (inpt[i]>='A' && inpt[i]<='Z') || 
-			(inpt[i]>='0' && inpt[i]<='9')){
+			(inpt[i]>='0' && inpt[i]<='9') || (inpt[i]==' ' && i != 0)){
 			out[c] = inpt[i];
 			c++;
 		}
@@ -201,57 +215,68 @@ char *str_withoutq(char *inpt){
 	return out;
 }
 
-void insert_tbl(int argc, char **argv){
+void insert_tbl(int argc, char **argv, char *parameter){
 	int into_int = find_position(argc, argv, "INTO");
 	int tbl_int = into_int + 1;
 	int data_int = tbl_int + 1;
 
+	// printf("%s\n", parameter);
+
 
 	int cek_b = ftxt_toArr(fpath_tbl(argv[tbl_int]));
-	int cek_k = 0;
+	int cek_k = 0, param_c = 0; //panjang kolom dari database (cek_k), 
+								//panjang kolom parameter command(param_c)
 
 	if(cek_b == -1) {
 		printf("Tabel Tidak Ditemukan!\n");
 		return;
 	}else{
+		// isi di dalam database tipenya
 		char** tokens;
 		tokens = str_split(TBLARR[1], ',');
 		for(int i =0; *(tokens + i); i++){
 			cek_k++;
 		}
+		//parameter dari command inseret
+		char** params;
+		params = str_split(parameter, ',');
+		for(int i =0; *(params + i); i++){
+			param_c++;
+		}
 
-		if((argc - data_int) != cek_k){
+		if(param_c != cek_k){
 			printf("Panjang Argumen dengan Kolom Tabel Tidak Sama!\n");
 			return;
 		}
-		char schar[3] = {'(', ')'};
+		char schar[4] = {'(', ')', ' '};
 		char saveStr[100];
-		for(int i = data_int; i<argc; i++) {
+		for(int i = 0; i<param_c; i++) {
 			// printf("string: %s tipe: %d\n", remove_schar(argv[i], schar), 
 			//		cek_tipe(remove_schar(argv[i], schar)));
 
-			if((strcmp(*(tokens + i - data_int), "int") == 0) && 
-				(cek_tipe(remove_schar(argv[i], schar)) == 1)) {
-				if(i == data_int){
-					strcpy(saveStr, remove_schar(argv[i], schar));
+			if((strcmp(*(tokens + i), "int") == 0) && 
+				(cek_tipe(remove_schar(*(params + i), schar)) == 1)) {
+				if(i == 0){
+					strcpy(saveStr, remove_schar(*(params + i), schar));
 				}else{
-					strcat(saveStr, remove_schar(argv[i], schar));
+					strcat(saveStr, remove_schar(*(params + i), schar));
 				}
-				if(i < argc - 1)
+				if(i < param_c - 1)
 					strcat(saveStr, ",");
 			}
-			else if((strcmp(*(tokens + i - data_int), "string") == 0) && 
-				(cek_tipe(remove_schar(argv[i], schar)) == 2)){
-				if(i == data_int){
-					strcpy(saveStr, str_withoutq(argv[i]));
+			else if((strcmp(*(tokens + i), "string") == 0) && 
+				(cek_tipe(remove_schar(*(params + i), schar)) == 2)){
+				if(i == 0){
+					strcpy(saveStr, str_withoutq(*(params + i)));
 				}else{
-					strcat(saveStr, str_withoutq(argv[i]));
+					strcat(saveStr, str_withoutq(*(params + i)));
 				}
-				if(i < argc - 1)
+				if(i < param_c - 1)
 					strcat(saveStr, ",");
 			}
+			
 			else{
-				printf("Gagal! Tipe data ke-%d: %s!\n", i+1- data_int, *(tokens + i - data_int));
+				printf("Gagal! Tipe data ke-%d: %s!\n", i+1, *(tokens + i));
 				return;
 			}
 		}
@@ -339,6 +364,9 @@ void run_command(char *comm){
 	char schar[3] = {',', '.', ';'};
 	int i;
 
+	char *param = malloc(100);
+	strcpy(param, comm);
+
     char** tokens;
     tokens = str_split(comm, ' ');
 
@@ -354,7 +382,7 @@ void run_command(char *comm){
 	// i sebagai panjang dari command yang telah ditokens
 
 	if (strcmp(*(tokens + 0), "INSERT") == 0){
-		insert_tbl(i, tokens);
+		insert_tbl(i, tokens, substr(param, find_index(param, '('), find_index(param, ')') + 1));
 	}
 	else if(strcmp(*(tokens + 0), "SELECT") == 0){
 		select_tbl(i, tokens);
@@ -371,6 +399,6 @@ int main(int argc, char **argv){
 
 	// printf("haduh\n");
 	// char command[200] = "INSERT INTO table1 (‘kita coba’, ‘value04’, 04);";
-	char command[200] = "INSERT INTO table1 (‘kitacoba’, ‘value04’, 04);";
+	char command[200] = "INSERT INTO table1 (‘kita coba’, 'wwaas', 87);";
 	run_command(command);
 }
