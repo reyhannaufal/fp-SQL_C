@@ -39,6 +39,7 @@ typedef struct user{
 user* client[10];
 
 //DML Fungsi
+int findMax_strTbl(char *namaTbl);
 char *fpath_tbl(char *nama_tbl);
 int ftxt_toArr(char *path);
 char *str_withoutq(char *inpt);
@@ -52,7 +53,7 @@ int is_schar(char x, char *schar);
 char *remove_schar(char *str, char *schar);
 int find_position(int argc, char **argv, char *str);
 int find_index(char *arg, char ichar);
-int fline_where(int argc, char **argv, int whereC);
+int fline_where(int argc, char **argv, int whereC, int *kolom);
 void addStringtoTxt(char *str, char *path, char *type, int tipe_call);
 int cek_tipe(char *inpt);
 void delete_tbl(int argc, char **argv, int line);
@@ -346,7 +347,7 @@ int find_index(char *arg, char ichar){
 	return -1;
 }
 
-int fline_where(int argc, char **argv, int whereC){
+int fline_where(int argc, char **argv, int whereC, int *kolom){
 	if(whereC == -1){
 		return -1;
 	}else{
@@ -369,6 +370,8 @@ int fline_where(int argc, char **argv, int whereC){
 				for (int j=0; *(tblline + j); j++){
 					if(strcmp(*(tblline + j), *(token_where + 0)) == 0){
 						kol_n = j;
+						*kolom = j;
+						printf("kolom asli: %d\n", kol_n);
 						break;
 					}
 				}
@@ -543,6 +546,26 @@ void insert_tbl(int argc, char **argv, char *parameter){
 	}
 }
 
+int findMax_strTbl(char *namaTbl){
+	int out = 0;
+	int cek = ftxt_toArr(fpath_tbl(namaTbl));
+	if(cek == -1){
+		return -1;
+	}
+	for(int i=0; i<cek; i++){
+		char** tokens;
+		tokens = str_split(TBLARR[i], ',');
+		if(tokens){
+			for(int j=0; *(tokens + j); j++){
+				if(strlen(*(tokens + j)) > out){
+					out = strlen(*(tokens + j));
+				}
+			}
+		}
+	}
+	return out;
+}
+
 void select_tbl(int argc, char **argv){
 	int from_int = find_position(argc, argv, "FROM");
 	int tbl_int = from_int + 1;
@@ -556,6 +579,9 @@ void select_tbl(int argc, char **argv){
 		OCLENGTH = 2;
 		return;
 	}
+
+	int lenTab = findMax_strTbl(argv[tbl_int]) + 1;
+	// int lenTab = 10;
 
 	int cek = ftxt_toArr(fpath_tbl(argv[tbl_int]));
 	if(cek == -1) {
@@ -598,14 +624,16 @@ void select_tbl(int argc, char **argv){
 			//print nama kolom
 			for(int x=0; x<kol_c; x++){
 				// printf("%s", *(tokens + kol_int[x]));
+				char ctab[50];
+				sprintf(ctab, "%*s", -lenTab, *(tokens + kol_int[x]));
 				if(x==0){
-					strcpy(outc, *(tokens + kol_int[x]));
+					strcpy(outc, ctab);
 				}else{
-					strcat(outc, *(tokens + kol_int[x]));
+					strcat(outc, ctab);
 				}
 				if(x<kol_c - 1){
 					// printf("\t");
-					strcat(outc, "\t");
+					strcat(outc, " ");
 				}
 
 			}
@@ -628,14 +656,17 @@ void select_tbl(int argc, char **argv){
 			if(isiDb){
 				for(int i=0; i<kol_c; i++){ //print urutan sesuai kol_c dari argv(command)
 					// printf("%s", *(isiDb + kol_int[i]));
+					char ctab[50];
+					sprintf(ctab, "%*s", -lenTab, *(isiDb + kol_int[i]));
+
 					if(i==0){
-						strcpy(outc, *(isiDb + kol_int[i]));
+						strcpy(outc, ctab);
 					}else{
-						strcat(outc, *(isiDb + kol_int[i]));
+						strcat(outc, ctab);
 					}
 					if(i<kol_c - 1){
 						// printf("\t");
-						strcat(outc, "\t");
+						strcat(outc, " ");
 					}
 				}
 				// printf("\n");
@@ -679,8 +710,15 @@ void run_command(char *comm){
 	if (strcmp(*(tokens + 0), "INSERT") == 0){
 		insert_tbl(i, tokens, substr(param, find_index(param, '('), find_index(param, ')') + 1));
 	}
+	else if(strcmp(*(tokens + 0), "UPDATE") == 0){
+		int kolom = -1;
+		int baris = fline_where(i, tokens, whereC, &kolom);
+		printf("kolom: %d\n", kolom);
+
+	}
 	else if(strcmp(*(tokens + 0), "DELETE") == 0){
-		delete_tbl(i, tokens, fline_where(i, tokens, whereC));
+		int kolom;
+		delete_tbl(i, tokens, fline_where(i, tokens, whereC, &kolom));
 	}
 	else if(strcmp(*(tokens + 0), "SELECT") == 0){
 		select_tbl(i, tokens);
