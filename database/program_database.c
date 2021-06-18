@@ -29,7 +29,7 @@
 char *PATH;
 char *namaDB = "db_percobaan";
 char TBLARR[100][100];
-char OUTCLIENT[buffSize][buffSize];
+char OUTCLIENT[100][100];
 int OCLENGTH = 0;
 
 typedef struct user
@@ -40,16 +40,12 @@ typedef struct user
 user *client[10];
 
 //DML Fungsi
-int findMax_strTbl(char *namaTbl);
-char *fpath_tbl(char *nama_tbl);
-int ftxt_toArr(char *path);
-char *str_withoutq(char *inpt);
 char *fpath_tbl(char *nama_tbl);
 int ftxt_toArr(char *path);
 char *str_withoutq(char *inpt);
 char *tokens_toStr(char **arg, int src, int dest, char *delim);
-char **str_split(char *a_str, const char a_delim);
-char *substr(const char *src, int m, int n);
+char** str_split(char* a_str, const char a_delim);
+char* substr(const char *src, int m, int n);
 int is_schar(char x, char *schar);
 char *remove_schar(char *str, char *schar);
 int find_position(int argc, char **argv, char *str);
@@ -168,6 +164,7 @@ int main(int argc, char *argv[])
 	PATH = strdup(s);
 	char *tok = strrchr(PATH, '/');
 	*tok = 0;
+	// printf("PAth: %s\n", PATH);
 
 	int indexClient = 0;
 
@@ -303,6 +300,10 @@ int ftxt_toArr(char *path)
 	FILE *fptr = NULL;
 	int i = 0;
 	int tot = 0;
+
+	// for (int i=0; i<100; i++){
+	// 	strcpy(TBLARR[i], "\0");
+	// }
 
 	fptr = fopen(path, "r");
 	if (fptr == NULL)
@@ -754,7 +755,8 @@ void select_tbl(int argc, char **argv)
 	}
 
 	int lenTab = findMax_strTbl(argv[tbl_int]) + 1;
-	// int lenTab = 10;
+	// printf("lentab: %d\n", lenTab);
+	// int lenTab = 5;
 
 	int cek = ftxt_toArr(fpath_tbl(argv[tbl_int]));
 	if (cek == -1)
@@ -803,16 +805,18 @@ void select_tbl(int argc, char **argv)
 				return;
 			}
 
-			char outc[100];
+			char outc[buffSize];
 			//print nama kolom
 			for (int x = 0; x < kol_c; x++)
 			{
 				// printf("%s", *(tokens + kol_int[x]));
-				char ctab[50];
-				sprintf(ctab, "%*s", -lenTab, *(tokens + kol_int[x]));
+				char ctab[buffSize];
+				sprintf(ctab, "%*s", lenTab, *(tokens + kol_int[x]));
+				// sprintf(ctab, "%s", *(tokens + kol_int[x]));
 				if (x == 0)
 				{
 					strcpy(outc, ctab);
+					// printf("outc: %s\n", outc);
 				}
 				else
 				{
@@ -840,14 +844,15 @@ void select_tbl(int argc, char **argv)
 			char **isiDb;
 			isiDb = str_split(TBLARR[x], ',');
 
-			char outc[100];
+			char outc[buffSize];
 			if (isiDb)
 			{
 				for (int i = 0; i < kol_c; i++)
 				{ //print urutan sesuai kol_c dari argv(command)
 					// printf("%s", *(isiDb + kol_int[i]));
-					char ctab[50];
-					sprintf(ctab, "%*s", -lenTab, *(isiDb + kol_int[i]));
+					char ctab[buffSize];
+					sprintf(ctab, "%*s", lenTab, *(isiDb + kol_int[i]));
+					// sprintf(ctab, "%s", *(isiDb + kol_int[i]));
 
 					if (i == 0)
 					{
@@ -882,7 +887,7 @@ void run_command(char *comm)
 	char schar[3] = {',', '.', ';'};
 	int i, whereC = -1;
 
-	log_db(comm);
+	// log_db(comm);
 
 	char *param = malloc(buffSize);
 	strcpy(param, comm);
