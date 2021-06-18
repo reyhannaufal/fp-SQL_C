@@ -2,3 +2,4 @@ kolom1,nama,nomor
 string,string,int
 kita coba,wwaas,87
 kita coba,value04,04
+test,asdsa,89
