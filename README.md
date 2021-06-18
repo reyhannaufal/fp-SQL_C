@@ -15,53 +15,59 @@ Bagaimana Program Diakses
 
 ## Autentikasi 🔒
 - Ada username dan password tertentu untuk bisa akses database yang dia punya hak. Jika root (sudo) bisa akses semua database (tidak perlu didefinisikan secara rinci haknya, hanya dia bisa akses atau nggak).
-
+```
 Format
 
-`./[program_client_database] -u [username] -p [password]`
+./[program_client_database] -u [username] -p [password]`
 
 Contoh
 
-`./client_databaseku -u jack -p jack123`
+./client_databaseku -u jack -p jack123
+```
 
 - Username, password, dan hak akses db disimpan di suatu database juga, tapi tidak ada user yang bisa akses database tersebut kecuali mengakses menggunakan root.
 - User root sudah ada dari awal.
 
 Contoh cara user root mengakses program client
 
-`sudo ./client_database`
+```
+sudo ./client_database
+```
  
 - Menambahkan user (Hanya bisa dilakukan user root)
-
+```
  Format
 
-`CREATE USER [nama_user] IDENTIFIED BY [password_user];`
+CREATE USER [nama_user] IDENTIFIED BY [password_user];
 
 Contoh
 
-`CREATE USER jack IDENTIFIED BY jack123;`
+CREATE USER jack IDENTIFIED BY jack123;
+```
 
 ## Authorisasi 🔑
 
 - Untuk dapat mengakses database yang dia punya permission dengan command. Pembuatan tabel dan semua DML butuh untuk mengakses database terlebih dahulu.
-
+```
 Format
 
-`USE [nama_database];`
+USE [nama_database];
 
 Contoh
 
-`USE database1;`
+USE database1;
+```
 
 - Yang bisa memberikan permission atas database untuk suatu user hanya root.
-
+```
 Format
 
-`GRANT PERMISSION [nama_database] INTO [nama_user];`
+GRANT PERMISSION [nama_database] INTO [nama_user];
 
 Contoh
 
-`GRANT PERMISSION database1 INTO user1;`
+GRANT PERMISSION database1 INTO user1;
+```
 
 - User hanya bisa mengakses database dimana dia diberi permission untuk database tersebut.
 
@@ -69,34 +75,33 @@ Contoh
 
 - Input penamaan database, tabel, dan kolom hanya angka dan huruf.
 - Semua user bisa membuat database, otomatis user tersebut memiliki permission untuk database tersebut.
-
-Format
-
-`CREATE DATABASE [nama_database];`
-
-Contoh
-
-`CREATE DATABASE database1;`
-
-`Root dan user yang memiliki permission untuk suatu database untuk bisa membuat tabel untuk database tersebut, tentunya setelah mengakses database tersebut. Tipe data dari semua kolom adalah string atau integer. Jumlah kolom bebas.`
-
-Format
-
-`CREATE TABLE [nama_tabel] ([nama_kolom] [tipe_data], ...);`
-
-Contoh
-
-`CREATE TABLE table1 (kolom1 string, kolom2 int, kolom3 string, kolom4 int);`
- 
-- Bisa melakukan DROP database, table (setelah mengakses database), dan kolom. Jika sasaran drop ada maka didrop, jika tidak ada maka biarkan.
-
-Format
-
-`DROP [DATABASE | TABLE | COLUMN] [nama_database | nama_tabel | [nama_kolom] FROM [nama_tabel]];`
-
-Contoh
-
 ```
+Format
+
+CREATE DATABASE [nama_database];
+
+Contoh
+
+CREATE DATABASE database1;
+```
+- Root dan user yang memiliki permission untuk suatu database untuk bisa membuat tabel untuk database tersebut, tentunya setelah mengakses database tersebut. Tipe data dari semua kolom adalah string atau integer. Jumlah kolom bebas.
+```
+Format
+
+CREATE TABLE [nama_tabel] ([nama_kolom] [tipe_data], ...);
+
+Contoh
+
+CREATE TABLE table1 (kolom1 string, kolom2 int, kolom3 string, kolom4 int);
+``` 
+- Bisa melakukan DROP database, table (setelah mengakses database), dan kolom. Jika sasaran drop ada maka didrop, jika tidak ada maka biarkan.
+```
+Format
+
+DROP [DATABASE | TABLE | COLUMN] [nama_database | nama_tabel | [nama_kolom] FROM [nama_tabel]];
+
+Contoh
+
 
 # Drop Database
 DROP DATABASE database1;
