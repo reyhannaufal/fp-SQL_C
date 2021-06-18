@@ -904,6 +904,7 @@ void run_command(char *comm, int indexClient)
 
 	char schar[3] = {',', '.', ';'};
 	int i, whereC = -1;
+	char database_name[256];
 
 	log_db(comm);
 
@@ -954,6 +955,36 @@ void run_command(char *comm, int indexClient)
 		if (strcmp(*(tokens + 1), "USER") == 0)
 		{
 			createuser(indexClient, i, tokens);
+		}
+		else if (strcmp(*(tokens + 1), "DATABASE") == 0)
+		{
+			/*
+				TODO:
+				DATABASE INTEGRATION FOR EVERY COMMAND
+			*/
+			FILE *fp;
+			char message[256];
+			sprintf(database_name, "%s", *(tokens + 2));
+			mkdir(database_name, 0777);
+			sprintf(message, "Database %s telah dibuat!", database_name);
+			strcpy(OUTCLIENT[0], message);
+			fclose(fp);
+		}
+		else if (strcmp(*(tokens + 1), "TABLE") == 0)
+		{
+			/*
+				TODO:
+				- ADD ATRRIBUT
+				- ADD DATA TYPE
+			*/
+			FILE *fp;
+			char table_name[256];
+			char table_path[256];
+			sprintf(table_name, "%s", *(tokens + 2));
+			sprintf(table_path, "%s/%s", database_name, table_name);
+			fopen(table_path, "w");
+			fputs("asdsa", table_path);
+			fclose(fp);
 		}
 	}
 }
