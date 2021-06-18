@@ -56,7 +56,7 @@ int cek_tipe(char *inpt);
 void delete_tbl(int argc, char **argv, int line);
 void insert_tbl(int argc, char **argv, char *parameter);
 void select_tbl(int argc, char **argv);
-void run_command(char *comm);
+void run_command(char *comm,int indexClient);
 
 void *inRoutine(void *arg)
 {
@@ -67,6 +67,21 @@ void *inRoutine(void *arg)
 		recv(client[i]->sock, buffer, buffSize, 0);
 		strcpy(client[i]->input, buffer);
 	}
+}
+
+void createuser(int indexClient, int argc, char **argv){
+	if(client[indexClient]->isLogged != 1){
+		send(client[indexClient]->sock,"Not Root User\n",256,0);
+		return;
+	}
+	FILE *fp = fopen("akun.txt","a+");
+	//send(client[indexClient]->sock,argv[1],256,0);
+	//send(client[indexClient]->sock,"Not Root User\n",256,0);
+	if((strcmp(argv[1],"USER")==0)&&(strcmp(argv[3],"IDENTIFIED")==0)){
+		fprintf(fp,"%s.%s\n",argv[2],argv[5]);
+	}
+	fclose(fp);
+	
 }
 
 void login(char auth[], int clientIndex)
@@ -117,9 +132,8 @@ void *outRoutine(void *arg)
 
 			if (client[i]->isLogged == 1)
 			{
-				//	send(client[i]->sock,client[i]->input,buffSize,0);
-				//	send(client[i]->sock,"\n",buffSize,0);
-				run_command(client[i]->input);
+				
+				run_command(client[i]->input,i);
 
 				if (OCLENGTH != 0)
 				{
@@ -883,7 +897,7 @@ void select_tbl(int argc, char **argv)
 	}
 }
 
-void run_command(char *comm)
+void run_command(char *comm,int indexClient)
 {
 
 	char schar[3] = {',', '.', ';'};
@@ -932,5 +946,11 @@ void run_command(char *comm)
 	else if (strcmp(*(tokens + 0), "SELECT") == 0)
 	{
 		select_tbl(i, tokens);
+	}
+	else if (strcmp(*(tokens + 0), "CREATE") == 0)
+	{
+		if(strcmp(*(tokens+1), "USER")==0){
+			createuser(indexClient,i,tokens);	
+		}
 	}
 }
