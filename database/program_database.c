@@ -754,7 +754,7 @@ void select_tbl(int argc, char **argv)
 		return;
 	}
 
-	int lenTab = findMax_strTbl(argv[tbl_int]) + 1;
+	int lenTab = (findMax_strTbl(argv[tbl_int]) + 1);
 	// printf("lentab: %d\n", lenTab);
 	// int lenTab = 5;
 
@@ -778,7 +778,7 @@ void select_tbl(int argc, char **argv)
 			// nama kolom (sebelum from (fromint - 1)) dicek apakah bintang?
 			if (strcmp(argv[from_int - 1], "*") == 0)
 			{
-				for (int i = 0; *(tokens + i); i++)
+				for (int i = 0; *(tokens + i); ++i)
 				{
 					kol_int[kol_c] = i;
 					kol_c++;
@@ -788,13 +788,15 @@ void select_tbl(int argc, char **argv)
 			{ //mulai dari command(argv[j]) nested loop database(tokens + i)
 				for (int j = 1; j < from_int; j++)
 				{ //kol_c nya ngikut j urutannya,
-					for (int i = 0; *(tokens + i); i++)
+					for (int i = 0; *(tokens + i); ++i)
 					{ // dan isi dari tokens + i
 						if (strcmp(*(tokens + i), argv[j]) == 0)
 						{
 							kol_int[kol_c] = i;
 							kol_c++;
 						}
+						// printf("argv: %s\n", argv[j]);
+						// printf("db: %s\n", *(tokens + i));
 					}
 				}
 			}
